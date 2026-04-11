@@ -12,3 +12,4 @@ pnpm-debug.log*
 coverage
 .dev.log
 .dev.err.log
+tsconfig.tsbuildinfo
