@@ -1,0 +1,10 @@
+[TypeError: fetch failed] {
+  [cause]: [Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: tbuchvitsbkdfpdwkifh.supabase.co:443, timeout: 10000ms)] {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: [Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: tbuchvitsbkdfpdwkifh.supabase.co:443, timeout: 10000ms)] {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
