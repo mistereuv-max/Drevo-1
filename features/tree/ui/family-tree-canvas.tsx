@@ -68,7 +68,7 @@ export function FamilyTreeCanvas({ persons, isAdmin }: FamilyTreeCanvasProps) {
   );
 
   return (
-    <section className="relative h-[88vh] rounded-3xl border border-[#e3dacb] bg-[#f7f1e7] p-3 shadow-sm">
+    <section className="relative h-[74vh] overflow-hidden rounded-3xl border border-[#e3dacb] bg-[#f7f1e7] p-3 shadow-sm md:h-[88vh]">
       <header className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e3dacb] bg-white px-4 py-3">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b07a2e]">Навигация</p>
@@ -109,7 +109,7 @@ export function FamilyTreeCanvas({ persons, isAdmin }: FamilyTreeCanvasProps) {
         </div>
       </header>
 
-      <div className="h-[calc(100%-5rem)] overflow-hidden rounded-2xl border border-[#e3dacb] bg-[#faf6ef]">
+      <div className="h-[calc(100%-6.25rem)] overflow-hidden rounded-2xl border border-[#e3dacb] bg-[#faf6ef] md:h-[calc(100%-5rem)]">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -123,7 +123,7 @@ export function FamilyTreeCanvas({ persons, isAdmin }: FamilyTreeCanvasProps) {
           onNodeClick={(_, node) => setSelectedPersonId(node.id)}
         >
           <Background gap={26} size={1} color="#e6dccd" />
-          <Controls showInteractive={false} />
+          <Controls showInteractive={false} position="top-right" />
         </ReactFlow>
       </div>
 
