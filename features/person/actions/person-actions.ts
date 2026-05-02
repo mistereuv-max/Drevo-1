@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import type { CreatePersonInput, UpdatePersonInput } from "@/entities/person/model/types";
 
 export type PersonActionState = {
@@ -65,17 +64,6 @@ function mapDbError(message: string): string {
   return `Ошибка Supabase: ${message}`;
 }
 
-async function requireAuthenticatedUser() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data.user) {
-    throw new Error("UNAUTHORIZED");
-  }
-
-  return { supabase, userId: data.user.id };
-}
-
 function getFileExtension(file: File): string {
   const fromType = file.type.split("/")[1];
   if (fromType) {
@@ -91,18 +79,8 @@ export async function upsertPersonAction(
   _prevState: PersonActionState = defaultActionState,
   formData: FormData,
 ): Promise<PersonActionState> {
-  let userId: string;
+  const userId = "open-admin";
   const adminSupabase = createAdminClient();
-
-  try {
-    const auth = await requireAuthenticatedUser();
-    userId = auth.userId;
-  } catch (_error) {
-    return {
-      ok: false,
-      message: "Нет доступа. Войдите как администратор через /admin/login и включите режим редактирования.",
-    };
-  }
 
   const parsed = personSchema.safeParse({
     id: getFormString(formData, "id"),
@@ -217,15 +195,6 @@ export async function deletePersonAction(
   formData: FormData,
 ): Promise<PersonActionState> {
   const adminSupabase = createAdminClient();
-
-  try {
-    await requireAuthenticatedUser();
-  } catch (_error) {
-    return {
-      ok: false,
-      message: "Нет доступа. Войдите как администратор через /admin/login и повторите.",
-    };
-  }
 
   const id = formData.get("id");
   if (typeof id !== "string" || id.length === 0) {

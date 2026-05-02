@@ -4,17 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInAction } from "@/features/auth/actions/auth-actions";
-import { createClient } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/get-safe-user";
 
 type AdminLoginPageProps = {
   searchParams: Promise<{ error?: string }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSafeUser();
   if (user) {
     redirect("/");
   }
@@ -56,4 +53,3 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
     </main>
   );
 }
-

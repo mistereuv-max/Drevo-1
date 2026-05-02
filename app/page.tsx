@@ -1,15 +1,9 @@
 import { getPersons } from "@/entities/person/api/get-persons";
 import { FamilyTreeCanvas } from "@/features/tree/ui/family-tree-canvas";
-import { createClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const persons = await getPersons();
-  const isAdmin = Boolean(user);
+  const isAdmin = true;
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-[1700px] px-5 py-5">
@@ -51,4 +45,3 @@ export default async function HomePage() {
     </main>
   );
 }
-
