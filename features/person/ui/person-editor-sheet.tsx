@@ -80,7 +80,7 @@ export function PersonEditorSheet({
         <header className="flex items-start justify-between gap-3 border-b border-[#ece4d8] pb-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b07a2e]">Редактирование</p>
-            <h2 className="mt-1 text-4xl leading-none text-[#1f1e1a]">{title}</h2>
+            <h2 className="mt-1 text-2xl leading-tight text-[#1f1e1a] md:text-4xl md:leading-none">{title}</h2>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
             ×
