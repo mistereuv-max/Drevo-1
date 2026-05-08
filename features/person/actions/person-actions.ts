@@ -15,6 +15,14 @@ const defaultActionState: PersonActionState = {
   message: null,
 };
 
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_AVATAR_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+
 const nullableUuid = z.union([z.literal(""), z.string().uuid()]).transform((value) =>
   value === "" ? null : value,
 );
@@ -75,6 +83,18 @@ function getFileExtension(file: File): string {
   return fromName ? fromName.replace(/[^a-zA-Z0-9]/g, "") : "bin";
 }
 
+function validateAvatarFile(file: File): string | null {
+  if (file.size > MAX_AVATAR_SIZE_BYTES) {
+    return "Фото слишком большое. Максимальный размер: 5 MB.";
+  }
+
+  if (!ALLOWED_AVATAR_MIME_TYPES.has(file.type)) {
+    return "Неподдерживаемый формат фото. Разрешены: JPG, PNG, WEBP, GIF.";
+  }
+
+  return null;
+}
+
 export async function upsertPersonAction(
   _prevState: PersonActionState = defaultActionState,
   formData: FormData,
@@ -109,6 +129,11 @@ export async function upsertPersonAction(
   let avatarUrl = values.current_avatar_url ?? "";
 
   if (file instanceof File && file.size > 0) {
+    const avatarValidationError = validateAvatarFile(file);
+    if (avatarValidationError) {
+      return { ok: false, message: avatarValidationError };
+    }
+
     const extension = getFileExtension(file);
     const filePath = `${userId}/${crypto.randomUUID()}.${extension}`;
 

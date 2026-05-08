@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Person } from "@/entities/person/model/types";
+import { prepareAvatarForUpload } from "@/shared/lib/image/avatar-upload";
 import {
   deletePersonAction,
   upsertPersonAction,
@@ -53,10 +54,26 @@ export function PersonEditorSheet({
     }
   }, [deleteState.ok, onClose, saveState.ok]);
 
+  async function handleSaveAction(formData: FormData) {
+    const avatar = formData.get("avatar");
+    if (avatar instanceof File && avatar.size > 0) {
+      try {
+        const prepared = await prepareAvatarForUpload(avatar);
+        if (prepared !== avatar) {
+          formData.set("avatar", prepared);
+        }
+      } catch {
+        // Если не удалось подготовить изображение, отправляем оригинал.
+      }
+    }
+
+    saveFormAction(formData);
+  }
+
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center bg-[#29231b]/35 p-4 backdrop-blur-[2px]">
       <form
-        action={saveFormAction}
+        action={handleSaveAction}
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-[#eadfce] bg-white p-6 shadow-2xl"
         key={`${mode}-${person?.id ?? "new"}-${linkTargetId ?? ""}`}
       >
