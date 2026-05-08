@@ -19,6 +19,7 @@ type FamilyTreeCanvasProps = {
 const nodeTypes = {
   personNode: PersonNode,
 };
+const RELATION_LINE_COLOR = "#9b7a52";
 
 type EditorState =
   | { mode: "create"; person: null; linkTargetId?: string | null; linkRelation?: "spouse" | null }
@@ -51,11 +52,11 @@ export function FamilyTreeCanvas({ persons, isAdmin }: FamilyTreeCanvasProps) {
         className: "family-edge",
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: edge.id.startsWith("spouse-") ? "#16a34a" : "#22c55e",
+          color: RELATION_LINE_COLOR,
         },
         style: {
           strokeWidth: 2.6,
-          stroke: edge.id.startsWith("spouse-") ? "#16a34a" : "#22c55e",
+          stroke: RELATION_LINE_COLOR,
           ...(edge.style ?? {}),
         },
       })),
@@ -115,7 +116,7 @@ export function FamilyTreeCanvas({ persons, isAdmin }: FamilyTreeCanvasProps) {
           edges={edges}
           nodeTypes={nodeTypes}
           defaultEdgeOptions={{
-            style: { stroke: "#22c55e", strokeWidth: 2.6 },
+            style: { stroke: RELATION_LINE_COLOR, strokeWidth: 2.6 },
           }}
           fitView
           minZoom={0.25}

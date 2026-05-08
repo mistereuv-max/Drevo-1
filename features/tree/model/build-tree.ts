@@ -47,6 +47,31 @@ function computeLevelMap(persons: Person[]): Map<string, number> {
     levelOf(person.id);
   });
 
+  // Супруги всегда на одном уровне поколения.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    persons.forEach((person) => {
+      if (!person.spouse_id) {
+        return;
+      }
+      const spouseLevel = memo.get(person.spouse_id);
+      const currentLevel = memo.get(person.id) ?? 0;
+      if (typeof spouseLevel !== "number") {
+        return;
+      }
+      const alignedLevel = Math.max(currentLevel, spouseLevel);
+      if (currentLevel !== alignedLevel) {
+        memo.set(person.id, alignedLevel);
+        changed = true;
+      }
+      if (spouseLevel !== alignedLevel) {
+        memo.set(person.spouse_id, alignedLevel);
+        changed = true;
+      }
+    });
+  }
+
   return memo;
 }
 

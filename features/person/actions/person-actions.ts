@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { CreatePersonInput, UpdatePersonInput } from "@/entities/person/model/types";
+import type { Database } from "@/lib/types/database";
 
 export type PersonActionState = {
   ok: boolean;
@@ -22,6 +23,7 @@ const ALLOWED_AVATAR_MIME_TYPES = new Set([
   "image/webp",
   "image/gif",
 ]);
+type PersonRow = Database["public"]["Tables"]["person"]["Row"];
 
 const nullableUuid = z.union([z.literal(""), z.string().uuid()]).transform((value) =>
   value === "" ? null : value,
@@ -90,6 +92,86 @@ function validateAvatarFile(file: File): string | null {
 
   if (!ALLOWED_AVATAR_MIME_TYPES.has(file.type)) {
     return "Неподдерживаемый формат фото. Разрешены: JPG, PNG, WEBP, GIF.";
+  }
+
+  return null;
+}
+
+function buildParentsMap(persons: PersonRow[]): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  persons.forEach((person) => {
+    map.set(person.id, [person.father_id, person.mother_id].filter(Boolean) as string[]);
+  });
+  return map;
+}
+
+function isAncestor(ancestorId: string, personId: string, parentsMap: Map<string, string[]>): boolean {
+  const visited = new Set<string>();
+  const stack = [...(parentsMap.get(personId) ?? [])];
+
+  while (stack.length > 0) {
+    const currentId = stack.pop();
+    if (!currentId || visited.has(currentId)) {
+      continue;
+    }
+    if (currentId === ancestorId) {
+      return true;
+    }
+    visited.add(currentId);
+    stack.push(...(parentsMap.get(currentId) ?? []));
+  }
+
+  return false;
+}
+
+function validateRelationshipConsistency(
+  candidateId: string,
+  payload: Pick<CreatePersonInput, "father_id" | "mother_id" | "spouse_id">,
+  existingPersons: PersonRow[],
+): string | null {
+  if (payload.father_id && payload.mother_id && payload.father_id === payload.mother_id) {
+    return "Один и тот же человек не может быть одновременно отцом и матерью.";
+  }
+
+  if (payload.spouse_id && (payload.spouse_id === payload.father_id || payload.spouse_id === payload.mother_id)) {
+    return "Супруг(а) не может быть одновременно родителем этого человека.";
+  }
+
+  const persons = existingPersons.filter((person) => person.id !== candidateId);
+  persons.push({
+    id: candidateId,
+    first_name: "",
+    last_name: "",
+    middle_name: null,
+    birth_date: new Date().toISOString().slice(0, 10),
+    birth_place: null,
+    role: "",
+    bio: null,
+    note: null,
+    avatar_url: "",
+    father_id: payload.father_id ?? null,
+    mother_id: payload.mother_id ?? null,
+    spouse_id: payload.spouse_id ?? null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  });
+
+  const parentsMap = buildParentsMap(persons);
+
+  if (payload.father_id && isAncestor(candidateId, payload.father_id, parentsMap)) {
+    return "Нельзя указать отца: выбранный человек является потомком текущего человека.";
+  }
+
+  if (payload.mother_id && isAncestor(candidateId, payload.mother_id, parentsMap)) {
+    return "Нельзя указать мать: выбранный человек является потомком текущего человека.";
+  }
+
+  if (payload.spouse_id) {
+    const spouseIsAncestor = isAncestor(payload.spouse_id, candidateId, parentsMap);
+    const spouseIsDescendant = isAncestor(candidateId, payload.spouse_id, parentsMap);
+    if (spouseIsAncestor || spouseIsDescendant) {
+      return "Супруг(а) не может быть предком или потомком (мать, отец, бабушка, дедушка, ребенок и т.д.).";
+    }
   }
 
   return null;
@@ -183,8 +265,22 @@ export async function upsertPersonAction(
     ...relationPayload,
   };
 
+  const candidateId = values.id || crypto.randomUUID();
+  const { data: existingPersons, error: existingPersonsError } = await adminSupabase
+    .from("person")
+    .select("id, first_name, last_name, middle_name, birth_date, birth_place, role, bio, note, avatar_url, father_id, mother_id, spouse_id, created_at, updated_at");
+
+  if (existingPersonsError) {
+    return { ok: false, message: `Не удалось проверить связи. ${mapDbError(existingPersonsError.message)}` };
+  }
+
+  const relationError = validateRelationshipConsistency(candidateId, relationPayload, existingPersons ?? []);
+  if (relationError) {
+    return { ok: false, message: relationError };
+  }
+
   if (!values.id) {
-    const insertedId = crypto.randomUUID();
+    const insertedId = candidateId;
     const { error } = await adminSupabase.from("person").insert({ ...payload, id: insertedId });
     if (error) {
       return { ok: false, message: `Не удалось добавить карточку. ${mapDbError(error.message)}` };
