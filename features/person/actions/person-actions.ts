@@ -45,6 +45,18 @@ const personSchema = z.object({
   current_avatar_url: z.string().optional(),
   link_target_id: nullableUuid.optional(),
   link_relation: z.enum(["father", "mother", "spouse", ""]).optional(),
+  father_first_name: z.string().trim().optional(),
+  father_last_name: z.string().trim().optional(),
+  father_birth_date: z.string().trim().optional(),
+  father_role: z.string().trim().optional(),
+  mother_first_name: z.string().trim().optional(),
+  mother_last_name: z.string().trim().optional(),
+  mother_birth_date: z.string().trim().optional(),
+  mother_role: z.string().trim().optional(),
+  spouse_first_name: z.string().trim().optional(),
+  spouse_last_name: z.string().trim().optional(),
+  spouse_birth_date: z.string().trim().optional(),
+  spouse_role: z.string().trim().optional(),
 });
 
 function getFormString(formData: FormData, key: string): string {
@@ -177,6 +189,39 @@ function validateRelationshipConsistency(
   return null;
 }
 
+type RelativeDraftInput = {
+  first_name: string;
+  last_name: string;
+  birth_date: string;
+  role: string;
+};
+
+function getRelativeDraft(
+  values: z.infer<typeof personSchema>,
+  relation: "father" | "mother" | "spouse",
+): RelativeDraftInput | null {
+  const firstName = values[`${relation}_first_name`];
+  const lastName = values[`${relation}_last_name`];
+  const birthDate = values[`${relation}_birth_date`];
+  const role = values[`${relation}_role`];
+
+  const hasAnyField = Boolean(firstName || lastName || birthDate || role);
+  if (!hasAnyField) {
+    return null;
+  }
+
+  if (!firstName || !lastName || !birthDate) {
+    return null;
+  }
+
+  return {
+    first_name: firstName,
+    last_name: lastName,
+    birth_date: birthDate,
+    role: role || (relation === "spouse" ? "супруг(а)" : relation === "father" ? "отец" : "мать"),
+  };
+}
+
 export async function upsertPersonAction(
   _prevState: PersonActionState = defaultActionState,
   formData: FormData,
@@ -200,6 +245,18 @@ export async function upsertPersonAction(
     current_avatar_url: getFormString(formData, "current_avatar_url"),
     link_target_id: getFormString(formData, "link_target_id"),
     link_relation: getFormString(formData, "link_relation"),
+    father_first_name: getFormString(formData, "father_first_name"),
+    father_last_name: getFormString(formData, "father_last_name"),
+    father_birth_date: getFormString(formData, "father_birth_date"),
+    father_role: getFormString(formData, "father_role"),
+    mother_first_name: getFormString(formData, "mother_first_name"),
+    mother_last_name: getFormString(formData, "mother_last_name"),
+    mother_birth_date: getFormString(formData, "mother_birth_date"),
+    mother_role: getFormString(formData, "mother_role"),
+    spouse_first_name: getFormString(formData, "spouse_first_name"),
+    spouse_last_name: getFormString(formData, "spouse_last_name"),
+    spouse_birth_date: getFormString(formData, "spouse_birth_date"),
+    spouse_role: getFormString(formData, "spouse_role"),
   });
 
   if (!parsed.success) {
@@ -207,6 +264,21 @@ export async function upsertPersonAction(
   }
 
   const values = parsed.data;
+  const fatherDraft = getRelativeDraft(values, "father");
+  const motherDraft = getRelativeDraft(values, "mother");
+  const spouseDraft = getRelativeDraft(values, "spouse");
+
+  const hasIncompleteDraft =
+    (!fatherDraft && (values.father_first_name || values.father_last_name || values.father_birth_date || values.father_role)) ||
+    (!motherDraft && (values.mother_first_name || values.mother_last_name || values.mother_birth_date || values.mother_role)) ||
+    (!spouseDraft && (values.spouse_first_name || values.spouse_last_name || values.spouse_birth_date || values.spouse_role));
+
+  if (hasIncompleteDraft) {
+    return {
+      ok: false,
+      message: "Для быстрого добавления родственника заполните минимум: имя, фамилия и дату рождения.",
+    };
+  }
   const file = formData.get("avatar");
   let avatarUrl = values.current_avatar_url ?? "";
 
@@ -252,6 +324,78 @@ export async function upsertPersonAction(
     }
   }
 
+  if (!values.id && !relationPayload.father_id && fatherDraft) {
+    const fatherId = crypto.randomUUID();
+    const { error: fatherError } = await adminSupabase.from("person").insert({
+      id: fatherId,
+      first_name: fatherDraft.first_name,
+      last_name: fatherDraft.last_name,
+      middle_name: null,
+      birth_date: fatherDraft.birth_date,
+      birth_place: null,
+      role: fatherDraft.role,
+      bio: null,
+      note: null,
+      avatar_url: "",
+      father_id: null,
+      mother_id: null,
+      spouse_id: null,
+    });
+
+    if (fatherError) {
+      return { ok: false, message: `Не удалось создать карточку отца. ${mapDbError(fatherError.message)}` };
+    }
+    relationPayload.father_id = fatherId;
+  }
+
+  if (!values.id && !relationPayload.mother_id && motherDraft) {
+    const motherId = crypto.randomUUID();
+    const { error: motherError } = await adminSupabase.from("person").insert({
+      id: motherId,
+      first_name: motherDraft.first_name,
+      last_name: motherDraft.last_name,
+      middle_name: null,
+      birth_date: motherDraft.birth_date,
+      birth_place: null,
+      role: motherDraft.role,
+      bio: null,
+      note: null,
+      avatar_url: "",
+      father_id: null,
+      mother_id: null,
+      spouse_id: null,
+    });
+
+    if (motherError) {
+      return { ok: false, message: `Не удалось создать карточку матери. ${mapDbError(motherError.message)}` };
+    }
+    relationPayload.mother_id = motherId;
+  }
+
+  if (!values.id && !relationPayload.spouse_id && spouseDraft) {
+    const spouseId = crypto.randomUUID();
+    const { error: spouseCreateError } = await adminSupabase.from("person").insert({
+      id: spouseId,
+      first_name: spouseDraft.first_name,
+      last_name: spouseDraft.last_name,
+      middle_name: null,
+      birth_date: spouseDraft.birth_date,
+      birth_place: null,
+      role: spouseDraft.role,
+      bio: null,
+      note: null,
+      avatar_url: "",
+      father_id: null,
+      mother_id: null,
+      spouse_id: null,
+    });
+
+    if (spouseCreateError) {
+      return { ok: false, message: `Не удалось создать карточку супруга(и). ${mapDbError(spouseCreateError.message)}` };
+    }
+    relationPayload.spouse_id = spouseId;
+  }
+
   const payload: CreatePersonInput = {
     first_name: values.first_name,
     last_name: values.last_name,
@@ -295,6 +439,19 @@ export async function upsertPersonAction(
 
       if (spouseError) {
         return { ok: false, message: `Карточка создана, но связь не обновлена. ${mapDbError(spouseError.message)}` };
+      }
+    }
+    if (relationPayload.spouse_id) {
+      const { error: spouseBacklinkError } = await adminSupabase
+        .from("person")
+        .update({ spouse_id: insertedId } satisfies UpdatePersonInput)
+        .eq("id", relationPayload.spouse_id);
+
+      if (spouseBacklinkError) {
+        return {
+          ok: false,
+          message: `Карточка создана, но не удалось проставить обратную связь супруга(и). ${mapDbError(spouseBacklinkError.message)}`,
+        };
       }
     }
   } else {

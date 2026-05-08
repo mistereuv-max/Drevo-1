@@ -180,6 +180,43 @@ export function PersonEditorSheet({
           </label>
         </div>
 
+        {mode === "create" ? (
+          <section className="mt-4 rounded-2xl border border-[#ece4d8] bg-[#fffcf7] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8b7b67]">
+              Быстрое добавление родственников
+            </p>
+            <p className="mt-1 text-xs text-[#6f6558]">
+              Заполните имя, фамилию и дату рождения для нужных карточек. Они создадутся автоматически и сразу свяжутся.
+            </p>
+
+            <div className="mt-3 grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#eee4d5] bg-white p-3 md:grid-cols-4">
+                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">Отец</Label>
+                <Input name="father_first_name" placeholder="Имя" />
+                <Input name="father_last_name" placeholder="Фамилия" />
+                <Input name="father_birth_date" type="date" />
+                <Input name="father_role" placeholder="Роль (по умолчанию: отец)" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#eee4d5] bg-white p-3 md:grid-cols-4">
+                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">Мать</Label>
+                <Input name="mother_first_name" placeholder="Имя" />
+                <Input name="mother_last_name" placeholder="Фамилия" />
+                <Input name="mother_birth_date" type="date" />
+                <Input name="mother_role" placeholder="Роль (по умолчанию: мать)" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#eee4d5] bg-white p-3 md:grid-cols-4">
+                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">Супруг(а)</Label>
+                <Input name="spouse_first_name" placeholder="Имя" />
+                <Input name="spouse_last_name" placeholder="Фамилия" />
+                <Input name="spouse_birth_date" type="date" />
+                <Input name="spouse_role" placeholder="Роль (по умолчанию: супруг(а))" />
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         {mode === "create" && linkTargetId ? (
           <label className="mt-3 block text-xs">
             <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Тип быстрой связи</Label>
