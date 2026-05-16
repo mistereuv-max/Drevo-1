@@ -46,7 +46,7 @@ export function PersonEditorSheet({
 }: PersonEditorSheetProps) {
   const [saveState, saveFormAction] = useActionState(upsertPersonAction, initialActionState);
   const [deleteState, deleteFormAction] = useActionState(deletePersonAction, initialActionState);
-  const title = mode === "create" ? "Р”РѕР±Р°РІРёС‚СЊ С‡РµР»РѕРІРµРєР°" : "Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ С‡РµР»РѕРІРµРєР°";
+  const title = mode === "create" ? "Добавить человека" : "Редактировать человека";
   const filtered = persons.filter((candidate) => candidate.id !== person?.id);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export function PersonEditorSheet({
           formData.set("avatar", prepared);
         }
       } catch {
-        // Р•СЃР»Рё РЅРµ СѓРґР°Р»РѕСЃСЊ РїРѕРґРіРѕС‚РѕРІРёС‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ, РѕС‚РїСЂР°РІР»СЏРµРј РѕСЂРёРіРёРЅР°Р».
+        // Если не удалось подготовить изображение, отправляем оригинал.
       }
     }
 
@@ -87,11 +87,11 @@ export function PersonEditorSheet({
       >
         <header className="flex items-start justify-between gap-3 border-b border-[#ece4d8] pb-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b07a2e]">Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b07a2e]">Редактирование</p>
             <h2 className="mt-1 text-2xl leading-tight text-[#1f1e1a] md:text-4xl md:leading-none">{title}</h2>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            Г—
+            ×
           </Button>
         </header>
 
@@ -112,49 +112,49 @@ export function PersonEditorSheet({
 
         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РРјСЏ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Имя</Label>
             <Input name="first_name" required defaultValue={person?.first_name ?? ""} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Р¤Р°РјРёР»РёСЏ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Фамилия</Label>
             <Input name="last_name" required defaultValue={person?.last_name ?? ""} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РћС‚С‡РµСЃС‚РІРѕ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Отчество</Label>
             <Input name="middle_name" defaultValue={person?.middle_name ?? ""} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Р”Р°С‚Р° СЂРѕР¶РґРµРЅРёСЏ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Дата рождения</Label>
             <Input name="birth_date" type="date" required defaultValue={person?.birth_date ?? ""} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Р РѕР»СЊ РІ СЃРµРјСЊРµ</Label>
-            <Input name="role" required defaultValue={person?.role ?? "СЂРѕРґСЃС‚РІРµРЅРЅРёРє"} />
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Роль в семье</Label>
+            <Input name="role" required defaultValue={person?.role ?? "родственник"} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Р¤РѕС‚Рѕ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Фото</Label>
             <Input name="avatar" type="file" accept="image/*" />
           </label>
         </div>
 
         <div className="mt-3 grid grid-cols-1 gap-3">
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РњРµСЃС‚Рѕ СЂРѕР¶РґРµРЅРёСЏ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Место рождения</Label>
             <Input name="birth_place" defaultValue={person?.birth_place ?? ""} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Р‘РёРѕРіСЂР°С„РёСЏ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Биография</Label>
             <Textarea name="bio" rows={3} defaultValue={person?.bio ?? ""} />
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РљСЂР°С‚РєР°СЏ Р·Р°РјРµС‚РєР°</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Краткая заметка</Label>
             <Textarea name="note" rows={3} defaultValue={person?.note ?? ""} />
           </label>
         </div>
 
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РћС‚РµС†</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Отец</Label>
             <Select name="father_id" defaultValue={person?.father_id ?? ""}>
               <option value="">-</option>
               {filtered.map((candidate) => (
@@ -165,7 +165,7 @@ export function PersonEditorSheet({
             </Select>
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РњР°С‚СЊ</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Мать</Label>
             <Select name="mother_id" defaultValue={person?.mother_id ?? ""}>
               <option value="">-</option>
               {filtered.map((candidate) => (
@@ -176,7 +176,7 @@ export function PersonEditorSheet({
             </Select>
           </label>
           <label className="text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РЎСѓРїСЂСѓРі(Р°)</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Супруг(а)</Label>
             <Select name="spouse_id" defaultValue={person?.spouse_id ?? ""}>
               <option value="">-</option>
               {filtered.map((candidate) => (
@@ -191,35 +191,35 @@ export function PersonEditorSheet({
         {mode === "create" ? (
           <section className="mt-4 rounded-2xl border border-[#ece4d8] bg-[#fffcf7] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8b7b67]">
-              Р‘С‹СЃС‚СЂРѕРµ РґРѕР±Р°РІР»РµРЅРёРµ СЂРѕРґСЃС‚РІРµРЅРЅРёРєРѕРІ
+              Быстрое добавление родственников
             </p>
             <p className="mt-1 text-xs text-[#6f6558]">
-              Р—Р°РїРѕР»РЅРёС‚Рµ РёРјСЏ, С„Р°РјРёР»РёСЋ Рё РґР°С‚Сѓ СЂРѕР¶РґРµРЅРёСЏ РґР»СЏ РЅСѓР¶РЅС‹С… РєР°СЂС‚РѕС‡РµРє. РћРЅРё СЃРѕР·РґР°РґСѓС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Рё СЃСЂР°Р·Сѓ СЃРІСЏР¶СѓС‚СЃСЏ.
+              Заполните имя, фамилию и дату рождения для нужных карточек. Они создадутся автоматически и сразу свяжутся.
             </p>
 
             <div className="mt-3 grid grid-cols-1 gap-4">
               <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#eee4d5] bg-white p-3 md:grid-cols-4">
-                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">РћС‚РµС†</Label>
-                <Input name="father_first_name" placeholder="РРјСЏ" />
-                <Input name="father_last_name" placeholder="Р¤Р°РјРёР»РёСЏ" />
+                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">Отец</Label>
+                <Input name="father_first_name" placeholder="Имя" />
+                <Input name="father_last_name" placeholder="Фамилия" />
                 <Input name="father_birth_date" type="date" />
-                <Input name="father_role" placeholder="Р РѕР»СЊ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: РѕС‚РµС†)" />
+                <Input name="father_role" placeholder="Роль (по умолчанию: отец)" />
               </div>
 
               <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#eee4d5] bg-white p-3 md:grid-cols-4">
-                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">РњР°С‚СЊ</Label>
-                <Input name="mother_first_name" placeholder="РРјСЏ" />
-                <Input name="mother_last_name" placeholder="Р¤Р°РјРёР»РёСЏ" />
+                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">Мать</Label>
+                <Input name="mother_first_name" placeholder="Имя" />
+                <Input name="mother_last_name" placeholder="Фамилия" />
                 <Input name="mother_birth_date" type="date" />
-                <Input name="mother_role" placeholder="Р РѕР»СЊ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: РјР°С‚СЊ)" />
+                <Input name="mother_role" placeholder="Роль (по умолчанию: мать)" />
               </div>
 
               <div className="grid grid-cols-1 gap-2 rounded-xl border border-[#eee4d5] bg-white p-3 md:grid-cols-4">
-                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">РЎСѓРїСЂСѓРі(Р°)</Label>
-                <Input name="spouse_first_name" placeholder="РРјСЏ" />
-                <Input name="spouse_last_name" placeholder="Р¤Р°РјРёР»РёСЏ" />
+                <Label className="md:col-span-4 text-[11px] uppercase tracking-[0.14em] text-[#8b7b67]">Супруг(а)</Label>
+                <Input name="spouse_first_name" placeholder="Имя" />
+                <Input name="spouse_last_name" placeholder="Фамилия" />
                 <Input name="spouse_birth_date" type="date" />
-                <Input name="spouse_role" placeholder="Р РѕР»СЊ (РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: СЃСѓРїСЂСѓРі(Р°))" />
+                <Input name="spouse_role" placeholder="Роль (по умолчанию: супруг(а))" />
               </div>
             </div>
           </section>
@@ -227,11 +227,11 @@ export function PersonEditorSheet({
 
         {mode === "create" && linkTargetId ? (
           <label className="mt-3 block text-xs">
-            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">РўРёРї Р±С‹СЃС‚СЂРѕР№ СЃРІСЏР·Рё</Label>
+            <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Тип быстрой связи</Label>
             <Select name="link_relation" defaultValue={linkRelation ?? "spouse"}>
-              <option value="spouse">РЎСѓРїСЂСѓРі(Р°)</option>
-              <option value="father">РћС‚РµС†</option>
-              <option value="mother">РњР°С‚СЊ</option>
+              <option value="spouse">Супруг(а)</option>
+              <option value="father">Отец</option>
+              <option value="mother">Мать</option>
             </Select>
           </label>
         ) : (
@@ -240,14 +240,20 @@ export function PersonEditorSheet({
 
         <footer className="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-[#ece4d8] pt-4">
           {mode === "edit" && person ? (
-            <Button type="submit" formAction={deleteFormAction} formNoValidate variant="destructive" onClick={handleDeleteClick}>
-              РЈРґР°Р»РёС‚СЊ
+            <Button
+              type="submit"
+              formAction={deleteFormAction}
+              formNoValidate
+              variant="destructive"
+              onClick={handleDeleteClick}
+            >
+              Удалить
             </Button>
           ) : null}
           <Button type="button" variant="outline" onClick={onClose}>
-            РћС‚РјРµРЅР°
+            Отмена
           </Button>
-          <Button type="submit">РЎРѕС…СЂР°РЅРёС‚СЊ</Button>
+          <Button type="submit">Сохранить</Button>
         </footer>
       </form>
     </div>
