@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import type { Person } from "@/entities/person/model/types";
 
@@ -15,6 +16,39 @@ function initials(person: Person): string {
 }
 
 export function PersonSidebar({ person, onClose, canEdit = false, onEdit }: PersonSidebarProps) {
+  const closeFromUi = useCallback(() => {
+    onClose();
+    if (window.history.state?.__overlay === "person-sidebar") {
+      window.history.back();
+    }
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!person) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeFromUi();
+      }
+    };
+
+    const handlePopState = () => {
+      onClose();
+    };
+
+    window.history.pushState({ ...(window.history.state ?? {}), __overlay: "person-sidebar" }, "");
+    window.addEventListener("keydown", handleEscape);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [closeFromUi, onClose, person]);
+
   if (!person) {
     return null;
   }
@@ -30,7 +64,7 @@ export function PersonSidebar({ person, onClose, canEdit = false, onEdit }: Pers
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b07a2e]">Карточка родственника</p>
               <h2 className="mt-1 break-words text-2xl leading-tight text-[#1f1e1a] md:text-4xl md:leading-none">{fullName}</h2>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={onClose}>
+            <Button type="button" variant="outline" size="sm" onClick={closeFromUi}>
               ×
             </Button>
           </header>
@@ -75,7 +109,7 @@ export function PersonSidebar({ person, onClose, canEdit = false, onEdit }: Pers
                 Редактировать
               </Button>
             ) : null}
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={closeFromUi}>
               Закрыть
             </Button>
           </footer>

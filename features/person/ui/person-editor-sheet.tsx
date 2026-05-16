@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useCallback, useEffect } from "react";
 import type { MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,11 +49,40 @@ export function PersonEditorSheet({
   const title = mode === "create" ? "Добавить человека" : "Редактировать человека";
   const filtered = persons.filter((candidate) => candidate.id !== person?.id);
 
+  const closeFromUi = useCallback(() => {
+    onClose();
+    if (window.history.state?.__overlay === "person-editor-sheet") {
+      window.history.back();
+    }
+  }, [onClose]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeFromUi();
+      }
+    };
+
+    const handlePopState = () => {
+      onClose();
+    };
+
+    window.history.pushState({ ...(window.history.state ?? {}), __overlay: "person-editor-sheet" }, "");
+    window.addEventListener("keydown", handleEscape);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [closeFromUi, onClose]);
+
   useEffect(() => {
     if (saveState.ok || deleteState.ok) {
-      onClose();
+      closeFromUi();
     }
-  }, [deleteState.ok, onClose, saveState.ok]);
+  }, [closeFromUi, deleteState.ok, saveState.ok]);
 
   async function handleSaveAction(formData: FormData) {
     const avatar = formData.get("avatar");
@@ -90,7 +119,7 @@ export function PersonEditorSheet({
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#b07a2e]">Редактирование</p>
             <h2 className="mt-1 text-2xl leading-tight text-[#1f1e1a] md:text-4xl md:leading-none">{title}</h2>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={onClose}>
+          <Button type="button" variant="outline" size="sm" onClick={closeFromUi}>
             ×
           </Button>
         </header>
@@ -250,7 +279,7 @@ export function PersonEditorSheet({
               Удалить
             </Button>
           ) : null}
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={closeFromUi}>
             Отмена
           </Button>
           <Button type="submit">Сохранить</Button>
