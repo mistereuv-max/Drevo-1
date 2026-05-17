@@ -161,7 +161,7 @@ export function PersonEditorSheet({
           </label>
           <label className="text-xs">
             <Label className="mb-1 block uppercase tracking-[0.14em] text-[#8b7b67]">Фото</Label>
-            <Input name="avatar" type="file" accept="image/*" />
+            <Input name="avatar" type="file" accept="image/*,.heic,.heif" />
           </label>
         </div>
 

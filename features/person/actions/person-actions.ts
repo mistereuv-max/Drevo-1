@@ -16,8 +16,16 @@ const defaultActionState: PersonActionState = {
   message: null,
 };
 
-const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const MAX_AVATAR_SIZE_BYTES = 15 * 1024 * 1024;
+const ALLOWED_AVATAR_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+]);
+const ALLOWED_AVATAR_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"]);
 type PersonRow = Database["public"]["Tables"]["person"]["Row"];
 
 const nullableUuid = z.union([z.literal(""), z.string().uuid()]).transform((value) => (value === "" ? null : value));
@@ -90,10 +98,15 @@ function getFileExtension(file: File): string {
 
 function validateAvatarFile(file: File): string | null {
   if (file.size > MAX_AVATAR_SIZE_BYTES) {
-    return "Фото слишком большое. Максимальный размер: 5 MB.";
+    return "Фото слишком большое. Максимальный размер: 15 MB.";
   }
-  if (!ALLOWED_AVATAR_MIME_TYPES.has(file.type)) {
-    return "Неподдерживаемый формат фото. Разрешены: JPG, PNG, WEBP, GIF.";
+
+  const extension = getFileExtension(file).toLowerCase();
+  const isMimeAllowed = file.type.length > 0 && ALLOWED_AVATAR_MIME_TYPES.has(file.type);
+  const isExtensionAllowed = ALLOWED_AVATAR_EXTENSIONS.has(extension);
+
+  if (!isMimeAllowed && !isExtensionAllowed) {
+    return "Неподдерживаемый формат фото. Разрешены: JPG, JPEG, PNG, WEBP, GIF, HEIC, HEIF.";
   }
   return null;
 }
